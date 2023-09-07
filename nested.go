@@ -7,6 +7,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+// Exploring nested model and realtime
+
 type NModel struct {
 	sub   chan ResponseMsg
 	title string
