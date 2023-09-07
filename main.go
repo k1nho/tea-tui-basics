@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+// Model: This is the main model
 type Model struct {
 	nestedModel    tea.Model
 	currentMessage string
