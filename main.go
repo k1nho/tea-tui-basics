@@ -3,38 +3,28 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 type Model struct {
-	sub            chan ResponseMsg
+	nestedModel    tea.Model
 	currentMessage string
 }
 
-type ResponseMsg struct {
-	response string
-	err      error
-}
-
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(
-		listenForActivity(m.sub),
-		waitForActivity(m.sub),
-	)
+	return nil
 }
 
 func (m Model) View() string {
-	return "hello the current message is " + m.currentMessage
+	return m.nestedModel.View()
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case ResponseMsg:
-		m.currentMessage = msg.response
-		return m, waitForActivity(m.sub)
+		fmt.Printf("correct we waited")
 
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -45,24 +35,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-// realtime
-func listenForActivity(sub chan ResponseMsg) tea.Cmd {
-	return func() tea.Msg {
-		for {
-			time.Sleep(time.Second * 10)
-			sub <- ResponseMsg{response: fmt.Sprintf("we are loaded at %v", time.Now()), err: nil}
-		}
-	}
-}
-
-func waitForActivity(sub chan ResponseMsg) tea.Cmd {
-	return func() tea.Msg {
-		return <-sub
-	}
-}
-
 func main() {
-	model := Model{sub: make(chan ResponseMsg), currentMessage: "no msg"}
+	nestedModel, err := initNModel()
+	if err != nil {
+		fmt.Printf("error: %v", err)
+		os.Exit(1)
+	}
+	model := Model{nestedModel: nestedModel}
 
 	if _, err := tea.NewProgram(model).Run(); err != nil {
 		fmt.Printf("new error %v", err)
